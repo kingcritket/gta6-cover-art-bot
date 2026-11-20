@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -6,22 +6,32 @@
 <title>Neon Coast Cover Studio — GTA-style cover art maker</title>
 <link rel="stylesheet" href="./style.css">
 <style>
-@font-face { font-family: 'Anton'; src: url('./fonts/anton.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
-@font-face { font-family: 'Pacifico'; src: url('./fonts/pacifico.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face {
+  font-family: 'Anton';
+  src: url('./fonts/anton.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Pacifico';
+  src: url('./fonts/pacifico.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
 </style>
 </head>
 <body>
 <main class="app">
-  <section class="stage" id="stage">
-    <div class="stage-head">
+  <section class="stage">
+    <header>
       <h1>Neon Coast <span>Cover Studio</span></h1>
-      <p class="tagline">Your photo, your words — a poster-style cover, made offline in your browser.</p>
-    </div>
-    <canvas id="cover" width="760" height="760" aria-label="The cover preview"></canvas>
-    <p class="hint">Click a panel to select it · drag to move the photo · scroll to zoom · drop photos anywhere on the stage</p>
+      <p class="tagline">Turn a photo and a caption into bold multi-panel cover art — right in your browser, fully offline.</p>
+    </header>
+    <canvas id="cover" width="760" height="760"></canvas>
+    <p class="hint">Click a panel to select it, drag to pan its photo, scroll to zoom.</p>
     <div class="tray-wrap">
       <h2>Photos</h2>
-      <div class="tray" id="tray"></div>
+      <div id="tray" class="tray"></div>
       <label class="upload">+ Add photos
         <input id="photo" type="file" accept="image/*" multiple hidden>
       </label>
@@ -31,52 +41,53 @@
   <aside class="controls">
     <section>
       <h2>1 · Layout</h2>
-      <div class="opts" id="layoutOpts"></div>
+      <div id="layoutOpts" class="opts"></div>
     </section>
+
     <section>
       <h2>2 · Selected panel</h2>
       <div class="row">
-        <button id="prevPanel" type="button" class="mini">‹ Prev</button>
-        <span id="panelLabel" class="panel-label">Panel 1 of 4</span>
-        <button id="nextPanel" type="button" class="mini">Next ›</button>
+        <button id="prevPanel" class="mini" type="button">← Prev</button>
+        <span id="panelLabel">Panel 1 of 4</span>
+        <button id="nextPanel" class="mini" type="button">Next →</button>
       </div>
-      <label class="slider">Zoom <span id="zoomVal">100%</span>
+      <label class="slider-label">Zoom <span id="zoomVal">100%</span>
         <input id="zoom" type="range" min="100" max="300" value="100">
       </label>
-      <button id="resetPan" type="button" class="mini">Reset position &amp; zoom</button>
+      <button id="resetPan" class="mini" type="button">Reset position &amp; zoom</button>
     </section>
+
     <section>
       <h2>3 · Grade</h2>
-      <div class="opts" id="gradeOpts"></div>
+      <div id="gradeOpts" class="opts"></div>
     </section>
+
     <section>
       <h2>4 · Caption</h2>
       <label>Title
         <input id="titleInput" type="text" maxlength="40" value="Sunset Heist">
       </label>
-      <label>Subtitle (script)
+      <label>Subtitle
         <input id="subtitleInput" type="text" maxlength="48" value="a Vice Coast story">
       </label>
-      <label class="slider">Title size <span id="titleSizeVal">100%</span>
+      <label class="slider-label">Title size <span id="titleSizeVal">100%</span>
         <input id="titleSize" type="range" min="60" max="150" value="100">
       </label>
-      <div class="row">
-        <label class="half">Position
-          <select id="posSelect">
-            <option value="bottom">Bottom</option>
-            <option value="top">Top</option>
-          </select>
-        </label>
-        <label class="half">Title block
-          <select id="blockSelect">
-            <option value="band">Halftone band</option>
-            <option value="frame">White frame</option>
-            <option value="clean">No block</option>
-          </select>
-        </label>
-      </div>
+      <label>Position
+        <select id="posSelect">
+          <option value="bottom" selected>Bottom</option>
+          <option value="top">Top</option>
+        </select>
+      </label>
+      <label>Title block
+        <select id="blockSelect">
+          <option value="band" selected>Halftone band</option>
+          <option value="frame">White frame</option>
+          <option value="clean">No block</option>
+        </select>
+      </label>
       <h3>Title colour</h3>
-      <div class="opts" id="colorOpts"></div>
+      <div id="colorOpts" class="opts"></div>
       <div class="checks">
         <label><input id="outlineChk" type="checkbox" checked> Outline</label>
         <label><input id="shadowChk" type="checkbox" checked> Shadow</label>
@@ -84,17 +95,14 @@
         <label><input id="vignetteChk" type="checkbox" checked> Vignette</label>
       </div>
     </section>
+
     <section>
       <h2>5 · Export PNG</h2>
       <label>Size
-        <select id="sizeSelect">
-          <option value="square">Square · 1080 × 1080</option>
-          <option value="portrait">Portrait · 1080 × 1350</option>
-          <option value="wide">Wide · 1920 × 1080</option>
-        </select>
+        <select id="sizeSelect"></select>
       </label>
       <div class="row">
-        <button id="exportOne" type="button" class="primary">Export this size</button>
+        <button id="exportOne" class="primary" type="button">Export this size</button>
         <button id="exportAll" type="button">Export all 3</button>
       </div>
       <div class="row">
@@ -102,8 +110,8 @@
         <button id="undo" type="button" disabled>↩ Undo</button>
         <button id="redo" type="button" disabled>↪ Redo</button>
       </div>
-      <p id="status" role="status"></p>
-      <p class="fine">Photos never leave your device. Original lettering (Anton &amp; Pacifico, OFL) — no Rockstar logo, artwork or font.</p>
+      <p id="status" class="status"></p>
+      <p class="fine">Your photos never leave this device — everything is drawn locally. Lettering uses Anton and Pacifico, both under the SIL Open Font License.</p>
     </section>
   </aside>
 </main>
