@@ -75,11 +75,14 @@ export const LAYOUTS = {
     panels(W, H) {
       // A denser collage: hero top-left, a second snapshot top-right, a
       // third along the bottom — all clear of the title band (which starts
-      // near 0.78H), so no face is ever cut by the band's edge.
+      // near 0.78H), so no face is ever cut by the band's edge. The bottom
+      // snapshot is short and wide, so it is flagged faceBias: a centred
+      // cover-fit crop of a portrait photo there would land on the neck
+      // and chin, and drawPhotoInto anchors it toward the face instead.
       return [
         { x: Math.round(W * 0.03), y: Math.round(H * 0.03), w: Math.round(W * 0.62), h: Math.round(H * 0.6), rotate: -2.5 },
         { x: Math.round(W * 0.6), y: Math.round(H * 0.05), w: Math.round(W * 0.37), h: Math.round(H * 0.42), rotate: 2.5 },
-        { x: Math.round(W * 0.3), y: Math.round(H * 0.55), w: Math.round(W * 0.4), h: Math.round(H * 0.22), rotate: -2 },
+        { x: Math.round(W * 0.3), y: Math.round(H * 0.55), w: Math.round(W * 0.4), h: Math.round(H * 0.22), rotate: -2, faceBias: true },
       ];
     },
   },
@@ -182,14 +185,35 @@ function panelPath(ctx, p) {
 
 // Draw one photo into a panel rect, cover-fit, with pan (fx, fy in -0.5..0.5
 // of the overflow) and zoom. Returns false when there is no image.
+// A panel flagged `faceBias` (the Tilted layout's short bottom snapshot)
+// anchors portrait photos toward the top, where faces sit: that panel is
+// short and wide, so a centred crop of a tall photo shows only a thin
+// middle slice and cuts the sitter at the neck or chin. The user's fy is
+// remapped around that upper anchor instead of around the centre — the
+// remap is monotonic and keeps both extremes reachable (fy -0.5 still
+// shows the very bottom of the photo, fy +0.5 the very top), so dragging,
+// the zoom slider and the pan reset keep working exactly as before, just
+// around a smarter neutral position. Landscape and square photos, and
+// every unflagged panel, crop exactly as they always did.
 function drawPhotoInto(ctx, img, p, fx, fy, zoom) {
   if (!img || !img.naturalWidth) return false;
   const pw = p.w; const ph = p.h;
   const base = Math.max(pw / img.naturalWidth, ph / img.naturalHeight) * zoom;
   const dw = img.naturalWidth * base;
   const dh = img.naturalHeight * base;
+  let anchorY = fy;
+  if (p.faceBias && img.naturalHeight > img.naturalWidth && dh > ph) {
+    // The thinner the visible slice (the more of the photo the panel
+    // hides), the stronger the pull toward the top — capped so a little
+    // context below the face stays in frame.
+    const hidden = 1 - ph / dh;
+    const bias = Math.min(0.42, 0.22 + hidden * 0.3);
+    anchorY = fy >= 0
+      ? bias + (fy / 0.5) * (0.5 - bias)
+      : bias + (fy / 0.5) * (bias + 0.5);
+  }
   const ox = (pw - dw) / 2 + fx * Math.max(0, dw - pw);
-  const oy = (ph - dh) / 2 + fy * Math.max(0, dh - ph);
+  const oy = (ph - dh) / 2 + anchorY * Math.max(0, dh - ph);
   ctx.drawImage(img, p.x + ox, p.y + oy, dw, dh);
   return true;
 }
